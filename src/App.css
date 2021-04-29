@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+
+.shop {
+  background-color: bisque;
+  color: blue ;
+}
+
+p {
+  background-color: bisque;
+  color: brown ;
+}
+
+#count {
+  background-color: burlywood;
+}
