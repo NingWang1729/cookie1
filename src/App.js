@@ -1,9 +1,11 @@
 import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
+import HighScores from './HighScores';
 
 function App() {
   var [cookie_count, set_cookie_count] = useState(0);
+  var [score_list,updateScores] = useState([]);
   var [hands, set_hands] = useState(1);
   var [grandmas, set_grandmas] = useState(0);
   var [bakeries, set_bakeries] = useState(0);
@@ -11,9 +13,60 @@ function App() {
   var [grandmas_cost, set_grandmas_cost] = useState(100);
   var [bakeries_cost, set_bakeries_cost] = useState(1000);
 
+  getHighScores().then((scores)=>updateScores(scores));
+
   function add_cookies() {
     set_cookie_count(cookie_count + hands + 10 * grandmas + 100 * bakeries);
   }
+
+async function getHighScores() {
+  const returnObj = await fetch('/highScores')
+  if (returnObj.ok) {
+    try {
+      let parsed = await returnObj.json();
+      return parsed;
+    }
+    catch (e) {
+      return [];
+    }
+  }
+  else {
+    return [];
+  }
+}
+
+async function postMyScore(scoreObj) {
+  try {
+  const request = await fetch ( '/saveScore', {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(scoreObj)
+  }
+  )
+  return await request.json();
+  }
+  catch (e) {
+    console.error("Failed to save score "+ e);
+  }
+
+}
+
+function buildScoreObj(name) {
+  return {name: name, score: cookie_count};
+}
+
+async function submitMyScore(myName) {
+  let scoreObj = buildScoreObj(myName);
+  console.log("Posting score: ", postMyScore(scoreObj));
+  let newHighScores = await getHighScores();
+  console.log(newHighScores);
+  updateScores(newHighScores);
+}
 
   function upgrade(uprade_type) {
     switch (uprade_type) {
@@ -44,6 +97,13 @@ function App() {
     }
   }
 
+
+  const dummyHighScoreList = [
+    {name: 'Eggert', score: '9001'},
+    {name: 'Christian', score: '12'},
+    {name: 'Ning', score:'37'},
+    {name: 'Sash', score:'37'}]
+
   return (
     <div className="App">
       <header className="App-header">
@@ -51,6 +111,14 @@ function App() {
           <tr>
             <td colSpan="3">
               <h1>Cookie Clicker Game</h1>
+            
+            </td>
+           
+          </tr>
+          <tr>
+            <td colSpan="1"></td>
+            <td colSpan="3">
+            <HighScores highScoreList = {score_list} submitFunction = {submitMyScore}></HighScores>   
             </td>
           </tr>
           <tr>
